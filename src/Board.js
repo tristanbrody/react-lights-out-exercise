@@ -30,6 +30,8 @@ import _ from "lodash";
 
 function Board({ nrows, ncols, chanceLightStartsOn }) {
   const [board, setBoard] = useState(createBoard());
+  console.log(`board is `);
+  console.dir(board);
   console.log(board);
   /** create a board nrows high/ncols wide, each cell randomly lit or unlit */
   function createBoard() {
@@ -37,12 +39,7 @@ function Board({ nrows, ncols, chanceLightStartsOn }) {
     for (let i = 0; i < ncols; i++) {
       initialBoard.push([]);
       for (let j = 0; j < nrows; j++) {
-        initialBoard[i].push(
-          <Cell
-            isLit={randomCellValue()}
-            flipCellsAroundMe={evt => flipCellsAround(`${i}-${j}`)}
-          />
-        );
+        initialBoard[i].push(randomCellValue());
       }
     }
     return initialBoard;
@@ -53,18 +50,15 @@ function Board({ nrows, ncols, chanceLightStartsOn }) {
     return randomNum <= 5 ? true : false;
   }
 
-  const hasWon = () => console.log(board);
-  board.every(n => {
-    for (let row of n) {
-      console.log(row.props.isLit);
-      return row.props.isLit;
-    }
-  });
+  const hasWon = () => {
+    return board.every(row => {
+      return row.every(cell => cell === false);
+    });
+  };
 
   function flipCellsAround(coord) {
+    console.log(`coord is ${coord}`);
     setBoard(oldBoard => {
-      console.log(`coord variable is`);
-      console.dir(coord);
       const [y, x] = coord.split("-").map(Number);
 
       const flipCell = (y, x, boardCopy) => {
@@ -83,6 +77,10 @@ function Board({ nrows, ncols, chanceLightStartsOn }) {
 
       const boardCopy = _.cloneDeep(oldBoard);
       flipCell(y, x, boardCopy);
+      flipCell(y, x - 1, boardCopy);
+      flipCell(y, x + 1, boardCopy);
+      flipCell(y - 1, x, boardCopy);
+      flipCell(y + 1, x, boardCopy);
       return boardCopy;
     });
   }
@@ -92,9 +90,18 @@ function Board({ nrows, ncols, chanceLightStartsOn }) {
   // if player hasn't won, make table board
   return (
     <div className="Board">
-      {board.map(arr => (
-        <div>{arr}</div>
-      ))}
+      {board.map((y, indx) => {
+        let row = [];
+        for (let x = 0; x < y.length; x++) {
+          row.push(
+            <Cell
+              isLit={y[x]}
+              flipCellsAroundMe={evt => flipCellsAround(`${indx}-${x}`)}
+            />
+          );
+        }
+        return <div>{row}</div>;
+      })}
     </div>
   );
 }
